@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rukomet – evidencija utakmice V14</title>
+<style>
+:root{
+  --bg:#eef2f5;--card:#fff;--ink:#17212b;--muted:#6c7680;--line:#d4dbe2;
+  --accent:#1769d2;--soft:#eef3f8;--yellow:#fff2a8;--red:#fde2df;--green:#e3f6e9;
+  --orange:#ffead1;--orangeLine:#e79520;--blue:#e8f2ff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+button,select,input{font:inherit} button{cursor:pointer}
+.app{height:100dvh;max-width:1600px;margin:auto;padding:5px;display:flex;flex-direction:column;gap:5px}
+.top{flex:0 0 auto;z-index:30}
+.scorebar{height:58px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:4px 10px;display:grid;grid-template-columns:1fr auto 1fr auto;align-items:center;gap:10px}
+.tname{font-weight:950;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score{font-size:34px;font-weight:950;line-height:1}
+.topcontrols{display:flex;gap:4px;align-items:center;justify-content:flex-end;flex-wrap:nowrap}
+.clockbox,.breakbox{border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 7px;text-align:center;min-width:76px}
+.clocklabel{font-size:8px;color:var(--muted);font-weight:900;text-transform:uppercase}
+.clocktime,.breaktime{font-size:17px;font-weight:950;font-variant-numeric:tabular-nums}
+.clockstatus,.breakstatus{display:none}
+.clockbtn,.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 8px;font-weight:850;min-height:34px;font-size:11px}
+.btn.active{background:var(--ink);color:#fff}
+.tabs{display:flex;gap:4px;margin-top:4px}
+.screen{display:none;min-height:0}.screen.active{display:block}
+#match.screen.active{flex:1;min-height:0}
+#setup.screen.active,#log.screen.active{flex:1;min-height:0;overflow:auto;padding-bottom:10px}
+
+.matchgrid{height:100%;display:grid;grid-template-columns:minmax(0,31%) minmax(0,31%) minmax(0,38%);gap:5px}
+.teamPane,.scorePane{background:#fff;border:1px solid var(--line);border-radius:11px;padding:5px;min-width:0;min-height:0;overflow:hidden}
+.teamPane{display:grid;grid-template-rows:auto 1fr auto;gap:4px}
+.teamhead{display:flex;justify-content:space-between;align-items:center;gap:4px}
+.teamtitle{font-size:16px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.teammetrics{display:flex;gap:4px;align-items:center}
+.metric{border:1px solid var(--line);border-radius:999px;padding:2px 6px;background:var(--soft);font-size:10px;font-weight:900;white-space:nowrap}
+.metric.seven{background:#f3ecff}
+.teamgoal{border:2px solid #0b4f8a;border-radius:8px;padding:2px 8px;background:#dcefff;color:#063f78;font-size:18px;font-weight:950;white-space:nowrap;line-height:1.05}
+
+.playerlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(44px,1fr);gap:3px;min-height:0}
+.playerrow{width:100%;border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 5px;display:grid;grid-template-columns:35px 1fr;grid-template-rows:auto auto;gap:1px 4px;align-items:center;text-align:left;min-width:0;min-height:0}
+.playerrow:active{transform:scale(.995)}
+.playerrow.second-warning{background:var(--orange);border-color:var(--orangeLine)}
+.playerrow.disqualified{background:var(--red);border-color:#d92d20}
+.pnum{grid-row:1/3;font-size:16px;font-weight:950;color:#0866c6}
+.pgoal{font-size:20px;font-weight:950;background:var(--green);border-radius:5px;text-align:center;padding:1px 3px;color:#063f78;line-height:1.05}
+.pmeta{display:flex;gap:5px;align-items:center;min-width:0;font-size:9px;font-weight:900;white-space:nowrap}
+.psmall{font-size:9px;font-weight:900;white-space:nowrap}
+.pflag{font-size:9px;font-weight:950;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pflag.warn2{color:#a35e00}.pflag.dq{color:#a31610}
+
+.teamBottom{display:grid;grid-template-columns:1fr;gap:4px}
+.compactbox{border:1px solid var(--line);border-radius:7px;padding:4px;background:#fafbfc}
+.compacttitle{font-size:9px;color:var(--muted);font-weight:950;text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px}
+.compactrow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:10px}
+.sevenhistory{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sevenok{color:#16733b;font-weight:950}.sevenmiss{color:#b42318;font-weight:950}
+.officials{display:flex;gap:3px;flex-wrap:wrap}
+.official{border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 5px;font-weight:900;font-size:10px;min-width:42px}
+.benchpill{font-size:9px;border:1px solid var(--line);border-radius:999px;padding:2px 5px;background:var(--soft);font-weight:900}
+.benchpill.w{background:var(--yellow)}.benchpill.two{background:var(--orange)}.benchpill.dq{background:var(--red)}
+.attackbtn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 6px;font-weight:900;font-size:10px}
+.injurybox{border:2px solid #6e9fd0;background:#eef6ff}
+.injuryline{display:grid;grid-template-columns:auto auto 1fr auto;gap:5px;align-items:center;margin-top:2px}
+.injuryplayer{font-size:14px;font-weight:950;color:#074b86}
+.injurycount{font-size:14px;font-weight:950}
+.attackdots{display:flex;gap:4px;align-items:center}
+.attackdot{width:22px;height:22px;border:1px solid #7da7d9;border-radius:5px;background:#fff;display:grid;place-items:center;font-size:10px;font-weight:950}
+.attackdot.done{background:#bcd8f5;border-color:#4e8bc7}.injuryready{font-weight:950;color:#16733b}
+.attackbtn.injuryadd{min-height:30px;padding:4px 9px;background:#1769d2;color:#fff;border-color:#1769d2;font-size:11px}
+
+.reductionbox{border:2px solid #8f9aa5;border-radius:7px;padding:4px;background:#fff}
+.reductionhead{display:flex;justify-content:space-between;align-items:center;gap:4px;margin-bottom:2px}
+.reductionbadge{border-radius:999px;padding:2px 7px;background:var(--red);font-size:12px;font-weight:950}
+.courtcount{font-size:11px;font-weight:950}
+.returnrows{display:grid;grid-template-columns:1fr;gap:1px}
+.returnrow{display:grid;grid-template-columns:1fr auto;gap:5px;align-items:center;border-top:1px solid var(--line);padding:2px 0;font-size:9px}
+.returnrow:first-child{border-top:0}
+.returntime{font-size:11px;font-weight:950;white-space:nowrap}
+.returnrow.orange{background:var(--orange)}.returnrow.anonymous{background:#fff5d8}
+.nextslots{margin-top:2px;padding-top:2px;border-top:1px dashed var(--line);font-size:9px;font-weight:900}
+.slotline{display:flex;justify-content:space-between;gap:5px}
+
+.scorePane{display:grid;grid-template-rows:auto 1fr;gap:4px}
+.scoreTitle{display:flex;justify-content:space-between;align-items:center}
+.scoreTitle strong{font-size:15px}.scoreSummary{font-size:10px;color:var(--muted)}
+.halves{display:grid;grid-template-columns:1fr 1fr;gap:4px;min-height:0}
+.halfbox{border:1px solid var(--line);border-radius:7px;padding:3px;min-height:0;overflow:hidden}
+.halfhead{text-align:center;font-size:10px;font-weight:950;margin-bottom:2px}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th,td{border:1px solid var(--line);padding:1px 2px;text-align:center;font-size:9px;height:17px;overflow:hidden;white-space:nowrap}
+th{background:var(--soft);font-weight:950}
+td.goalcell{font-weight:950;font-size:10px}
+td.goalcell .scorer{font-size:8px;color:var(--muted);font-weight:900}
+tr.latest td{background:#eef6ff}
+.empty{color:var(--muted);padding:5px;text-align:center}
+
+.setupgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:350px}
+.key{min-height:48px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:18px;font-weight:900}
+.display{font-size:28px;font-weight:950;background:var(--soft);border:1px solid var(--line);border-radius:9px;padding:7px;margin-bottom:7px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.tag{border:1px solid var(--line);border-radius:999px;padding:5px 7px;font-weight:800}
+.tag button{border:0;background:transparent;color:#b42318;font-weight:900}
+.offpick{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.offpick button{min-height:40px;border:1px solid var(--line);border-radius:8px;background:#fff;font-weight:900}
+.offpick .on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sectiontitle{font-size:11px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 5px}
+.small{font-size:11px;color:var(--muted)}
+
+.log{display:flex;flex-direction:column;gap:5px}
+.logitem{border:1px solid var(--line);border-radius:8px;padding:7px;font-size:12px;background:#fff;display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center}
+.logactions{display:flex;gap:4px}.mini{border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 7px;font-weight:800}
+
+.modalbg{display:none;position:fixed;inset:0;background:rgba(8,15,22,.28);z-index:100;align-items:flex-start;justify-content:flex-end;padding:72px 8px 8px}
+.modalbg.show{display:flex}
+.modal{width:min(500px,calc(100vw - 16px));max-height:calc(100vh - 80px);overflow:auto;background:#fff;border-radius:12px;padding:10px;box-shadow:0 14px 45px rgba(0,0,0,.24)}
+.modalhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.modaltitle{font-size:18px;font-weight:950}.close{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:18px}
+.eventgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.eventbtn{min-height:58px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:15px;font-weight:950}
+.eventbtn.goal{background:var(--green)}.eventbtn.warn{background:var(--yellow)}.eventbtn.dq{background:var(--red)}.eventbtn.double{background:var(--orange);border-color:var(--orangeLine)}
+.timegrid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.timebtn{min-height:40px;border:1px solid var(--line);border-radius:7px;background:#fff;font-weight:900}
+.confirmbox{border:1px solid var(--line);border-radius:10px;padding:9px;background:var(--soft);margin:6px 0}
+.footer{display:flex;gap:6px;margin-top:8px}.footer .btn{flex:1}
+.manualgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field label{display:block;font-size:11px;font-weight:900;color:var(--muted);margin:0 0 3px}
+.field select,.field input{width:100%;min-height:40px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:0 8px;font:inherit;font-weight:800}
+.field.full{grid-column:1/-1}
+.autodq{background:var(--red);border:1px solid #efb6b1;border-radius:8px;padding:7px;margin-top:7px;font-weight:900}
+.nextdq,.earlyentry{background:var(--orange);border:1px solid var(--orangeLine);border-radius:8px;padding:7px;margin:6px 0;font-weight:900}
+.breakbox.running{border-color:var(--accent);background:#eef6ff}.breakbox.done{border-color:#d92d20;background:var(--red)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="scorebar">
+      <div><div id="scoreNameA" class="tname">Ekipa A</div></div>
+      <div class="score"><span id="scoreA">0</span> : <span id="scoreB">0</span></div>
+      <div style="text-align:right"><div id="scoreNameB" class="tname">Ekipa B</div></div>
+      <div class="topcontrols">
+        <div class="clockbox"><div class="clocklabel">SAT</div><div id="refClock" class="clocktime">--:--</div></div>
+        <button class="clockbtn" onclick="startReferenceHalf(1)">1P</button>
+        <button class="clockbtn" onclick="startReferenceHalf(2)">2P</button>
+        <button class="clockbtn" onclick="openClockCorrection()">KOR</button>
+        <div id="breakBox" class="breakbox"><div class="clocklabel">PAUZA</div><div id="breakClock" class="breaktime">--:--</div></div>
+        <button class="clockbtn" onclick="startBreakTimer(10)">10</button>
+        <button class="clockbtn" onclick="startBreakTimer(15)">15</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="btn active" onclick="showScreen('match',this)">UTAKMICA</button>
+      <button class="btn" onclick="showScreen('setup',this)">POSTAVKA</button>
+      <button class="btn" onclick="showScreen('log',this)">DOGAĐAJI</button>
+      <button class="btn" onclick="openManualEditor()">＋ DODAJ</button>
+      <button class="btn" onclick="undoLast()">↶ PONIŠTI</button>
+    </div>
+  </div>
+
+  <section id="match" class="screen active">
+    <div class="matchgrid">
+      <div id="teamA" class="teamPane"></div>
+      <div id="teamB" class="teamPane"></div>
+      <div class="scorePane">
+        <div class="scoreTitle"><strong>KRETANJE REZULTATA</strong><span class="scoreSummary">svaki gol = novi red</span></div>
+        <div class="halves">
+          <div class="halfbox"><div class="halfhead">1. POLUVREME</div>
+            <table><thead><tr><th>A</th><th>min</th><th>B</th></tr></thead><tbody id="firstHalf"></tbody></table>
+          </div>
+          <div class="halfbox"><div class="halfhead">2. POLUVREME</div>
+            <table><thead><tr><th>A</th><th>min</th><th>B</th></tr></thead><tbody id="secondHalf"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="setup" class="screen">
+    <div class="setupgrid">
+      <div id="setupA" class="card"></div>
+      <div id="setupB" class="card"></div>
+    </div>
+  </section>
+
+  <section id="log" class="screen">
+    <div class="card">
+      <div class="teamtitle">Dnevnik događaja</div>
+      <div id="eventLog" class="log" style="margin-top:8px"></div>
+    </div>
+  </section>
+</div>
+
+<div id="modalbg" class="modalbg" onclick="if(event.target.id==='modalbg') closeModal()">
+  <div id="modal" class="modal"></div>
+</div>
+
+<script>
+const OFFICIALS=["A","B","C","D","E","F"];
+const DEFAULT_TEAMS=["RK Dinamo","RK Dubočica 54","Ekipa A","Ekipa B"];
+const STORAGE_KEY="rukomet-touch-v6";
+function load(){
+  try{
+    const raw=window.localStorage?localStorage.getItem(STORAGE_KEY):null;
+    return raw?JSON.parse(raw):null;
+  }catch(e){ return null; }
+}
+let state=load()||{
+  teamNames:["RK Dinamo","RK Dubočica 54"],
+  players:[[],[]],
+  officials:[[],[]],
+  events:[]
+};
+let buf=["",""], pending=null;
+let editingEventId=null;
+function normalizeState(){
+  if(!state||typeof state!=="object") state={};
+  if(!Array.isArray(state.teamNames)) state.teamNames=["RK Dinamo","RK Dubočica 54"];
+  state.teamNames=[state.teamNames[0]||"RK Dinamo",state.teamNames[1]||"RK Dubočica 54"];
+  if(!Array.isArray(state.players)) state.players=[[],[]];
+  state.players=[Array.isArray(state.players[0])?state.players[0]:[],Array.isArray(state.players[1])?state.players[1]:[]];
+  if(!Array.isArray(state.officials)) state.officials=[[],[]];
+  state.officials=[Array.isArray(state.officials[0])?state.officials[0]:[],Array.isArray(state.officials[1])?state.officials[1]:[]];
+  if(!Array.isArray(state.events)) state.events=[];
+  state.events=state.events.map((e,i)=>({...e,id:e.id??(Date.now()+i+Math.random()),seq:e.seq??i,attacksDone:e.type==="injury3"?Math.max(0,Math.min(3,Number(e.attacksDone||0))):e.attacksDone,injuryClosed:e.type==="injury3"?Boolean(e.injuryClosed):e.injuryClosed}));
+}
+
+normalizeState();
+
+let refClockState={
+  active:false,
+  running:false,
+  baseSeconds:0,
+  baseRealMs:Date.now(),
+  source:""
+};
+
+function clampGameSeconds(v){
+  return Math.max(0,Math.min(3600,Math.round(Number(v)||0)));
+}
+function currentRefSeconds(){
+  if(!refClockState.active) return null;
+  if(!refClockState.running) return refClockState.baseSeconds;
+  return clampGameSeconds(refClockState.baseSeconds+(Date.now()-refClockState.baseRealMs)/1000);
+}
+function setReferenceClock(seconds,source,running=true){
+  refClockState.active=true;
+  refClockState.running=running;
+  refClockState.baseSeconds=clampGameSeconds(seconds);
+  refClockState.baseRealMs=Date.now();
+  refClockState.source=source||"korekcija";
+  renderReferenceClock();
+}
+function pauseReferenceClock(source){
+  if(!refClockState.active)return;
+  refClockState.baseSeconds=clampGameSeconds(currentRefSeconds());
+  refClockState.baseRealMs=Date.now();
+  refClockState.running=false;
+  refClockState.source=source||"pauzirano";
+  renderReferenceClock();
+}
+function startReferenceHalf(half){
+  if(Number(half)===1)setReferenceClock(0,"početak 1. poluvremena",true);
+  else setReferenceClock(30*60,"početak 2. poluvremena",true);
+}
+function renderReferenceClock(){
+  const c=document.getElementById("refClock");
+  if(!c)return;
+  if(!refClockState.active){
+    c.textContent="--:--";
+    return;
+  }
+  c.textContent=secondsToClock(Math.floor(currentRefSeconds()));
+}
+function syncReferenceClockFromEvent(e){
+  if(!e||e.minute==null)return;
+  const exact=["2min","2plus2","additional","dq","tto"].includes(e.type)&&e.second!=null;
+  if(exact){
+    setReferenceClock(timeToSeconds(e.minute,e.second),label(e.type)+" "+formatTime(e),true);
+    return;
+  }
+
+  // Minut je približan. Ako sat već radi, zadržavamo njegove sekunde.
+  // Ako još nije pokrenut, krećemo od :00 iz unetog minuta.
+  const current=refClockState.active?Math.floor(currentRefSeconds()):0;
+  const sec=refClockState.active?(current%60):0;
+  setReferenceClock(Number(e.minute)*60+sec,label(e.type)+" "+e.minute+". min",true);
+}
+function openClockCorrection(){
+  const cur=refClockState.active?Math.floor(currentRefSeconds()):0;
+  const m=Math.floor(cur/60),s=cur%60;
+  openModal(`<div class="modalhead"><div class="modaltitle">Koriguj orijentacioni sat</div><button class="close" onclick="closeModal()">×</button></div>
+    <div class="manualgrid">
+      <div class="field"><label>Minut</label><input id="clockMinute" type="number" inputmode="numeric" min="0" max="60" value="${m}"></div>
+      <div class="field"><label>Sekunde</label><input id="clockSecond" type="number" inputmode="numeric" min="0" max="59" value="${s}"></div>
+    </div>
+    
+    <div class="footer"><button class="btn" onclick="closeModal()">Odustani</button><button class="btn" style="background:#1f6feb;color:#fff" onclick="saveClockCorrection()">KORIGUJ</button></div>`);
+}
+function saveClockCorrection(){
+  const m=Number(document.getElementById("clockMinute").value),s=Number(document.getElementById("clockSecond").value);
+  if(!Number.isInteger(m)||m<0||m>60||!Number.isInteger(s)||s<0||s>59){alert("Unesi ispravno vreme.");return}
+  setReferenceClock(m*60+s,"ručna korekcija "+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0"),true);
+  closeModal();
+}
+
+let breakTimerState={
+  active:false,
+  durationSeconds:0,
+  endRealMs:0,
+  finished:false
+};
+function startBreakTimer(minutes){
+  pauseReferenceClock("pauza između poluvremena");
+  breakTimerState.active=true;
+  breakTimerState.finished=false;
+  breakTimerState.durationSeconds=Number(minutes)*60;
+  breakTimerState.endRealMs=Date.now()+breakTimerState.durationSeconds*1000;
+  renderBreakTimer();
+}
+function resetBreakTimer(){
+  breakTimerState.active=false;
+  breakTimerState.finished=false;
+  breakTimerState.durationSeconds=0;
+  breakTimerState.endRealMs=0;
+  renderBreakTimer();
+}
+function remainingBreakSeconds(){
+  if(!breakTimerState.active)return null;
+  return Math.max(0,Math.ceil((breakTimerState.endRealMs-Date.now())/1000));
+}
+function playBreakBeep(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    const ctx=new AC(),osc=ctx.createOscillator(),gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.frequency.value=880;gain.gain.value=0.08;
+    osc.start();osc.stop(ctx.currentTime+0.35);
+    osc.onended=()=>ctx.close();
+  }catch(e){}
+}
+function renderBreakTimer(){
+  const box=document.getElementById("breakBox"),c=document.getElementById("breakClock");
+  if(!box||!c)return;
+  box.classList.remove("running","done");
+  if(!breakTimerState.active){
+    c.textContent="--:--";return;
+  }
+  const rem=remainingBreakSeconds();
+  c.textContent=String(Math.floor(rem/60)).padStart(2,"0")+":"+String(rem%60).padStart(2,"0");
+  if(rem>0){
+    box.classList.add("running");
+  }else{
+    box.classList.add("done");c.textContent="00:00";
+    if(!breakTimerState.finished){breakTimerState.finished=true;playBreakBeep();}
+  }
+}
+setInterval(()=>{renderReferenceClock();renderBreakTimer();},500);
+
+function save(){
+  try{ if(window.localStorage) localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }catch(e){}
+}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+function showScreen(id,b){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".tabs .btn").forEach(x=>x.classList.remove("active"));if(b)b.classList.add("active")}
+function openModal(h){document.getElementById("modal").innerHTML=h;document.getElementById("modalbg").classList.add("show")}
+function closeModal(){document.getElementById("modalbg").classList.remove("show")}
+
+function chronologicalEvents(){
+  return [...state.events].sort((a,b)=>(Number(a.minute||0)-Number(b.minute||0))||((a.second==null?-1:Number(a.second))-(b.second==null?-1:Number(b.second)))||(Number(a.seq||0)-Number(b.seq||0)));
+}
+function teamScore(t){return state.events.filter(e=>e.team===t&&(e.type==="goal"||(e.type==="7m"&&e.result==="goal"))).length}
+function suspensionUnits(e){return e.type==="2plus2"?2:(["2min","additional"].includes(e.type)?1:0)}
+function playerSuspensionCount(t,n,excludeId=null){
+  return state.events.filter(e=>e.team===t&&e.actorType==="player"&&String(e.actor)===String(n)&&String(e.id)!==String(excludeId)).reduce((sum,e)=>sum+suspensionUnits(e),0);
+}
+function playerStats(t,n){
+  const ev=state.events.filter(e=>e.team===t&&e.actorType==="player"&&String(e.actor)===String(n));
+  const m2=ev.reduce((sum,e)=>sum+suspensionUnits(e),0);
+  return {
+    g:ev.filter(e=>e.type==="goal"||(e.type==="7m"&&e.result==="goal")).length,
+    y:ev.filter(e=>e.type==="warning").length,
+    m2,
+    dq:ev.some(e=>e.type==="dq")||m2>=3,
+    injury:currentInjuryForPlayer(t,n)
+  }
+}
+function autoDQForEvent(e,excludeId=null){
+  if(!e||e.actorType!=="player"||!["2min","2plus2","additional"].includes(e.type))return false;
+  const excluded=excludeId??e.id??null;
+  const before=playerSuspensionCount(e.team,e.actor,excluded);
+  return before+suspensionUnits(e)>=3;
+}
+function timeToSeconds(minute,second){return Number(minute||0)*60+Number(second||0)}
+function secondsToClock(total){
+  if(total>3600)return ">60:00";
+  return `${String(Math.floor(total/60)).padStart(2,"0")}:${String(total%60).padStart(2,"0")}`;
+}
+function reductionEnd(e){
+  const duration=e.type==="2plus2"?240:120;
+  return timeToSeconds(e.minute,e.second)+duration;
+}
+function eventStartSeconds(e){return timeToSeconds(e.minute,e.second)}
+
+function reductionSlotsForTeam(t){
+  const slots=[];
+  chronologicalEvents().filter(e=>e.team===t).forEach(e=>{
+    const start=eventStartSeconds(e);
+    let duration=null,kind="";
+    if(e.actorType==="player"&&["2min","2plus2","additional"].includes(e.type)){
+      duration=e.type==="2plus2"?240:120;kind=e.type;
+    }else if(e.actorType==="player"&&e.type==="dq"){
+      duration=120;kind="dq";
+    }else if(e.actorType==="official"&&["2min","dq"].includes(e.type)){
+      duration=120;kind="official";
+    }
+    if(duration===null)return;
+
+    let anonymous=false;
+    if(e.actorType==="player"&&["2min","2plus2"].includes(e.type)){
+      anonymous=state.events.some(x=>x.team===t&&x.actorType==="player"&&String(x.actor)===String(e.actor)&&x.earlyEntry===true&&eventStartSeconds(x)>start&&eventStartSeconds(x)<start+duration);
+    }
+    slots.push({id:String(e.id),event:e,start,end:start+duration,kind,anonymous,autoDQ:autoDQForEvent(e)});
+  });
+  return slots;
+}
+function currentGameSecond(){
+  const refNow=currentRefSeconds();
+  if(refNow!=null)return Math.floor(refNow);
+  return chronologicalEvents().reduce((m,e)=>Math.max(m,timeToSeconds(e.minute,e.second)),0);
+}
+function activeReductionSlots(t){
+  const now=currentGameSecond();
+  return reductionSlotsForTeam(t).filter(s=>s.start<=now&&s.end>now);
+}
+function activeReductionCount(t){return activeReductionSlots(t).length}
+function activeSuspensionEventsForPlayer(t,n,atSeconds,excludeId=null){
+  return chronologicalEvents().filter(e=>e.team===t&&e.actorType==="player"&&String(e.actor)===String(n)&&["2min","2plus2","additional"].includes(e.type)&&String(e.id)!==String(excludeId)&&eventStartSeconds(e)<atSeconds&&reductionEnd(e)>atSeconds);
+}
+function hasLaterEarlyEntryDuring(e){
+  if(!e||e.actorType!=="player"||!["2min","2plus2","additional"].includes(e.type))return false;
+  const start=eventStartSeconds(e),end=reductionEnd(e);
+  return state.events.some(x=>x.actorType==="player"&&x.team===e.team&&String(x.actor)===String(e.actor)&&x.earlyEntry===true&&String(x.id)!==String(e.id)&&eventStartSeconds(x)>start&&eventStartSeconds(x)<end);
+}
+function slotLabel(slot){
+  const e=slot.event;
+  if(slot.anonymous)return "BEZ BROJA";
+  if(e.actorType==="official")return `KLUPA ${e.actor}`;
+  if(e.type==="dq")return "BEZ BROJA";
+  if(e.type==="additional")return `#${e.actor} ADD`;
+  if(e.earlyEntry)return `#${e.actor} RANI ULAZAK`;
+  return `#${e.actor}`;
+}
+function returnRows(t){
+  const slots=activeReductionSlots(t).sort((a,b)=>a.end-b.end);
+  if(!slots.length)return '<div class="small">Nema aktivnih redukcija.</div>';
+  return `<div class="returnrows">${slots.map(s=>`<div class="returnrow ${s.kind==="2plus2"||s.event.earlyEntry?"orange":s.anonymous?"anonymous":""}"><div><strong>${slotLabel(s)}</strong>${s.autoDQ?" · DQ":""}</div><div class="returntime">${secondsToClock(s.end)}</div></div>`).join("")}</div>`;
+}
+function nextReductionChanges(t){
+  const slots=activeReductionSlots(t);
+  if(!slots.length)return "";
+  const groups={};slots.forEach(s=>{groups[s.end]=(groups[s.end]||0)+1});
+  return `<div class="nextslots">${Object.keys(groups).map(Number).sort((a,b)=>a-b).map(x=>`<div class="slotline"><span>${secondsToClock(x)}</span><span>+${groups[x]} mesto${groups[x]>1?"a":""}</span></div>`).join("")}</div>`;
+}
+function injuryClearedBySuspension(inj){
+  const start=eventStartSeconds(inj);
+  return state.events.some(e=>e.team===inj.team&&e.actorType==="player"&&String(e.actor)===String(inj.actor)&&["2min","2plus2","additional"].includes(e.type)&&eventStartSeconds(e)>=start);
+}
+function activeInjuryEvents(t){return chronologicalEvents().filter(e=>e.type==="injury3"&&e.team===t&&!e.injuryClosed&&!injuryClearedBySuspension(e));}
+function currentInjuryForPlayer(t,n){const a=activeInjuryEvents(t).filter(e=>String(e.actor)===String(n));return a.length?a[a.length-1]:null;}
+function incrementAttack(t){let changed=false;state.events.forEach(e=>{if(e.type==="injury3"&&e.team===t&&!e.injuryClosed&&!injuryClearedBySuspension(e)&&Number(e.attacksDone||0)<3){e.attacksDone=Math.min(3,Number(e.attacksDone||0)+1);changed=true;}});if(changed)renderAll();}
+function dismissInjury(id){const e=state.events.find(x=>String(x.id)===String(id));if(e){e.injuryClosed=true;renderAll();}}
+
+function officialStats(t,o){
+  const ev=state.events.filter(e=>e.team===t&&e.actorType==="official"&&String(e.actor)===String(o));
+  return {
+    y:ev.some(e=>e.type==="warning"),
+    m2:ev.some(e=>e.type==="2min"),
+    dq:ev.some(e=>e.type==="dq")
+  }
+}
+function benchPenaltyStats(t,excludeId=null){
+  const ev=state.events.filter(e=>e.team===t&&e.actorType==="official"&&(excludeId==null||String(e.id)!==String(excludeId)));
+  return {
+    warning:ev.some(e=>e.type==="warning"),
+    two:ev.some(e=>e.type==="2min"),
+    dq:ev.some(e=>e.type==="dq")
+  }
+}
+function officialPenaltyAvailable(t,type,excludeId=null){
+  const s=benchPenaltyStats(t,excludeId);
+  if(type==="warning")return !s.warning;
+  if(type==="2min")return !s.two;
+  if(type==="dq")return !s.dq;
+  return true;
+}
+function sevenStats(t){
+  const ev=state.events.filter(e=>e.team===t&&e.type==="7m");
+  return {
+    awarded:ev.length,
+    scored:ev.filter(e=>e.result==="goal").length
+  }
+}
+function renderActiveExclusions(){}
+function injuryRows(t){
+  const rows=activeInjuryEvents(t);if(!rows.length)return "";
+  return rows.map(e=>{const n=Math.max(0,Math.min(3,Number(e.attacksDone||0)));const dots=[1,2,3].map(i=>`<span class="attackdot ${i<=n?"done":""}">${i<=n?"✓":i}</span>`).join("");return `<div class="injuryrow"><div><strong>#${e.actor}</strong> · ${n>=3?'<span class="injuryready">MOŽE U IGRU</span>':`3 NAPADA · ${n}/3`}</div><div class="attackdots">${dots}</div>${n>=3?`<button class="attackbtn" onclick="dismissInjury('${e.id}')">OK</button>`:""}</div>`;}).join("");
+}
+function renderInjuryPanel(){}
+function renderAll(){renderScore();renderTeam(0);renderTeam(1);renderSetup(0);renderSetup(1);renderProgress();renderLog();renderReferenceClock();renderBreakTimer();save()}
+function renderScore(){
+  document.getElementById("scoreA").textContent=teamScore(0);document.getElementById("scoreB").textContent=teamScore(1);
+  document.getElementById("scoreNameA").textContent=state.teamNames[0];document.getElementById("scoreNameB").textContent=state.teamNames[1];
+}
+function sevenHistory(t){
+  const ev=chronologicalEvents().filter(e=>e.team===t&&e.type==="7m");
+  if(!ev.length)return "—";
+  return ev.map(e=>`#${e.actor}<span class="${e.result==="goal"?"sevenok":"sevenmiss"}">${e.result==="goal"?"✓":"×"}</span>`).join(" ");
+}
+function teamInjuryCompact(t){
+  const rows=activeInjuryEvents(t);
+  if(!rows.length)return '<span class="small">—</span>';
+  return rows.map(e=>{
+    const n=Math.max(0,Math.min(3,Number(e.attacksDone||0)));
+    const dots=[1,2,3].map(i=>`<span class="attackdot ${i<=n?"done":""}">${i<=n?"✓":i}</span>`).join("");
+    return `<div class="injuryline"><span class="injuryplayer">#${e.actor}</span><span class="injurycount">${n>=3?'<span class="injuryready">MOŽE</span>':`${n}/3`}</span><span class="attackdots">${dots}</span>${n<3?`<button class="attackbtn injuryadd" onclick="incrementAttack(${t})">+ NAPAD</button>`:`<button class="attackbtn injuryadd" onclick="dismissInjury('${e.id}')">OK</button>`}</div>`;
+  }).join("");
+}
+function renderTeam(t){
+  const el=document.getElementById(t===0?"teamA":"teamB");
+  const players=[...state.players[t]].sort((a,b)=>a-b);
+  const s7=sevenStats(t),bench=benchPenaltyStats(t),red=activeReductionCount(t),onCourt=Math.max(0,7-red);
+  el.innerHTML=`
+    <div class="teamhead">
+      <div class="teamtitle">${t===0?"A":"B"} · ${esc(state.teamNames[t])}</div>
+      <div class="teammetrics"><span class="metric seven">7m ${s7.scored}/${s7.awarded}</span><span class="teamgoal">G ${teamScore(t)}</span></div>
+    </div>
+    <div class="playerlist">
+      ${players.map(n=>{const s=playerStats(t,n),cls=s.dq?" disqualified":(s.m2===2?" second-warning":"");return `<button class="playerrow${cls}" onclick="openActor(${t},'player','${n}')"><span class="pnum">#${n}</span><span class="pgoal">G ${s.g}</span><span class="pmeta"><span class="psmall">Ž ${s.y}</span><span class="psmall">2m ${s.m2}</span><span class="pflag ${s.m2===2&&!s.dq?"warn2":s.dq?"dq":""}">${s.injury?`3N ${Number(s.injury.attacksDone||0)}/3`:s.dq?"DQ":s.m2===2?"SLEDEĆE=DQ":""}</span></span></button>`}).join("")||'<div class="small">Unesi igrače u Postavci.</div>'}
+    </div>
+    <div class="teamBottom">
+      <div class="compactbox"><div class="compacttitle">7 METARA</div><div class="compactrow"><strong>${s7.scored}/${s7.awarded}</strong><span class="sevenhistory">${sevenHistory(t)}</span></div></div>
+      <div class="compactbox injurybox"><div class="compacttitle">POVREDA · 3 NAPADA</div>${teamInjuryCompact(t)}</div>
+      <div class="compactbox"><div class="compacttitle">ZVANIČNICI</div><div class="compactrow"><div class="officials">${state.officials[t].map(o=>{const s=officialStats(t,o);return `<button class="official" onclick="openActor(${t},'official','${o}')">${o}${s.y?" Ž":""}${s.m2?" 2m":""}${s.dq?" DQ":""}</button>`}).join("")||'<span class="small">—</span>'}</div><span class="benchpill ${bench.warning?"w":""}">Ž ${bench.warning?"✓":"—"}</span><span class="benchpill ${bench.two?"two":""}">2m ${bench.two?"✓":"—"}</span><span class="benchpill ${bench.dq?"dq":""}">DQ ${bench.dq?"✓":"—"}</span><button class="attackbtn" onclick="startTTO(${t})">TTO</button></div></div>
+      <div class="reductionbox"><div class="reductionhead"><div><strong>REDUKCIJA</strong>${red?` <span class="reductionbadge">-${red}</span>`:""}</div><div class="courtcount">MAX NA TERENU: ${onCourt}/7</div></div>${returnRows(t)}${nextReductionChanges(t)}</div>
+    </div>`;
+}
+function goalEvents(){
+  let a=0,b=0;
+  return chronologicalEvents().filter(e=>e.type==="goal"||(e.type==="7m"&&e.result==="goal")).map(e=>{
+    if(e.team===0)a++;else b++;
+    return {...e,scoreA:a,scoreB:b};
+  });
+}
+function renderProgress(){
+  const goals=goalEvents();
+  const first=goals.filter(e=>e.minute<=30);
+  const second=goals.filter(e=>e.minute>=31);
+  document.getElementById("firstHalf").innerHTML=progressRows(first);
+  document.getElementById("secondHalf").innerHTML=progressRows(second);
+}
+function progressRows(arr){
+  if(!arr.length)return `<tr><td colspan="3" class="empty">—</td></tr>`;
+  return arr.map((e,i)=>{
+    const a=e.team===0?`<div>${e.scoreA}</div><div class="scorer">#${e.actor}${e.type==="7m"?" · 7m":""}</div>`:"";
+    const b=e.team===1?`<div>${e.scoreB}</div><div class="scorer">#${e.actor}${e.type==="7m"?" · 7m":""}</div>`:"";
+    return `<tr class="${i===arr.length-1?'latest':''}"><td class="goalcell">${a}</td><td>${e.minute}</td><td class="goalcell">${b}</td></tr>`;
+  }).join("");
+}
+function formatTime(e){return e.second==null?`${e.minute}. min`:`${String(e.minute).padStart(2,"0")}:${String(e.second).padStart(2,"0")}`}
+function label(type){return ({goal:"GOL",warning:"OPOMENA","2min":"2 MIN","2plus2":"2+2 MIN",dq:"DISKVALIFIKACIJA","7m":"7 m",tto:"TTO",injury3:"POVREDA 3N",additional:"ADDITIONAL PLAYER"})[type]||type}
+function renderLog(){
+  const el=document.getElementById("eventLog");
+  if(!state.events.length){el.innerHTML='<div class="small">Nema događaja.</div>';return}
+  el.innerHTML=chronologicalEvents().map(e=>
+    `<div class="logitem">
+      <div><strong>${formatTime(e)}</strong> · ${esc(state.teamNames[e.team])} · ${e.actorType==="player"?"#"+e.actor:e.actorType==="official"?"zvaničnik "+e.actor:"TTO"} · ${label(e.type)}${e.type==="7m"?` · ${e.result==="goal"?"pogodak":"promašaj"}`:""}${e.earlyEntry?" · RANI ULAZAK":""}${e.type==="additional"?" · BEZ BROJA VAN TERENA":""}${e.type==="injury3"?` · ${Number(e.attacksDone||0)}/3 napada`:""}${autoDQForEvent(e)?" · AUTO DQ":""}</div>
+      <div class="logactions"><button class="mini" onclick="openManualEditor('${e.id}')">Izmeni</button><button class="mini" onclick="deleteEvent('${e.id}')">Obriši</button></div>
+    </div>`
+  ).join("");
+}
+
+function openActor(t,kind,actor){
+  pending={team:t,actorType:kind,actor:kind==="player"?Number(actor):actor,type:null,minute:null,second:null,result:null};
+  const s=kind==="player"?playerStats(t,Number(actor)):null;
+  let choices=[];
+
+  if(kind==="player"){
+    choices=[['goal','GOL','goal'],['7m','7 m',''],['warning','ŽUTI KARTON','warn'],['2min','2 MIN',''],['2plus2','2+2 MIN','double'],['dq','DISKVALIFIKACIJA','dq'],['additional','ADDITIONAL PLAYER','double'],['injury3','POVREDA 3N','']];
+  }else{
+    if(officialPenaltyAvailable(t,"warning"))choices.push(['warning','ŽUTI KARTON','warn']);
+    if(officialPenaltyAvailable(t,"2min"))choices.push(['2min','2 MIN','']);
+    if(officialPenaltyAvailable(t,"dq"))choices.push(['dq','DISKVALIFIKACIJA','dq']);
+  }
+
+  const alert=s&&s.m2===2&&!s.dq?'<div class="nextdq">SLEDEĆE ISKLJUČENJE = DQ</div>':'';
+  const already=s&&s.dq?'<div class="autodq">DISKVALIFIKOVAN</div>':'';
+  const noChoices=kind==="official"&&choices.length===0?'<div class="confirmbox"><strong>Ž, 2 min i DQ su već evidentirani za klupu.</strong></div>':'';
+
+  openModal(`<div class="modalhead"><div class="modaltitle">${esc(state.teamNames[t])} · ${kind==="player"?"#"+actor:"zvaničnik "+actor}</div><button class="close" onclick="closeModal()">×</button></div>${alert}${already}${noChoices}
+  <div class="eventgrid">${choices.map(c=>`<button class="eventbtn ${c[2]}" onclick="chooseEvent('${c[0]}')">${c[1]}</button>`).join("")}</div>`);
+}
+function chooseEvent(type){pending.type=type;if(type==="7m")return choose7m();if(type==="injury3")return chooseInjuryPossession();chooseMinute()}
+function chooseInjuryPossession(){openModal(`<div class="modalhead"><div class="modaltitle">POVREDA 3N · #${pending.actor}</div><button class="close" onclick="closeModal()">×</button></div><div class="eventgrid"><button class="eventbtn goal" onclick="setInjuryPossession(true)">EKIPA IMA LOPTU</button><button class="eventbtn" onclick="setInjuryPossession(false)">EKIPA NEMA LOPTU</button></div>`)}
+function setInjuryPossession(hasBall){pending.attacksDone=hasBall?1:0;chooseMinute()}
+function choose7m(){openModal(`<div class="modalhead"><div class="modaltitle">7 m · #${pending.actor}</div><button class="close" onclick="closeModal()">×</button></div>
+<div class="eventgrid"><button class="eventbtn goal" onclick="set7m('goal')">POGODAK</button><button class="eventbtn dq" onclick="set7m('miss')">PROMAŠAJ</button></div>`)}
+function set7m(r){pending.result=r;chooseMinute()}
+function chooseMinute(){openModal(`<div class="modalhead"><div class="modaltitle">${label(pending.type)} · izaberi minut</div><button class="close" onclick="closeModal()">×</button></div>
+<div class="timegrid">${Array.from({length:60},(_,i)=>i+1).map(m=>`<button class="timebtn" onclick="setMinute(${m})">${m}</button>`).join("")}</div>`)}
+function setMinute(m){pending.minute=m;if(["2min","2plus2","additional","dq","tto"].includes(pending.type))chooseSecond();else confirmPending()}
+function chooseSecond(){openModal(`<div class="modalhead"><div class="modaltitle">${label(pending.type)} · ${pending.minute}. minut · sekunde</div><button class="close" onclick="closeModal()">×</button></div>
+<div class="timegrid">${Array.from({length:60},(_,i)=>i).map(s=>`<button class="timebtn" onclick="setSecond(${s})">${String(s).padStart(2,"0")}</button>`).join("")}</div>`)}
+function setSecond(s){pending.second=s;confirmPending()}
+function confirmPending(){
+  const who=pending.actorType==="player"?`#${pending.actor}`:pending.actorType==="official"?`zvaničnik ${pending.actor}`:"TTO";
+  const auto=autoDQForEvent(pending);
+  const end=["2min","2plus2","additional","dq"].includes(pending.type)?secondsToClock(timeToSeconds(pending.minute,pending.second)+(pending.type==="2plus2"?240:120)):null;
+  openModal(`<div class="modalhead"><div class="modaltitle">Potvrdi</div><button class="close" onclick="closeModal()">×</button></div>
+  <div class="confirmbox"><strong>${esc(state.teamNames[pending.team])} · ${who}</strong><br><span style="font-size:24px;font-weight:950">${label(pending.type)}</span><br><span style="font-size:22px;font-weight:900">${formatTime(pending)}</span>${pending.type==="7m"?`<br><strong>${pending.result==="goal"?"POGODAK":"PROMAŠAJ"}</strong>`:""}${pending.type==="injury3"?`<br><strong>${Number(pending.attacksDone||0)}/3 NAPADA</strong>`:""}${end?`<br><strong>${pending.type==="additional"?"BEZ BROJA · DOPUNA":auto||pending.type==="dq"?"DOPUNA EKIPE":"POVRATAK"}: ${end}</strong>`:""}</div>
+  ${auto?'<div class="autodq">AUTOMATSKA DISKVALIFIKACIJA</div>':''}
+  <div class="footer"><button class="btn" onclick="closeModal()">Odustani</button><button class="btn" style="background:#1f6feb;color:#fff" onclick="savePending()">POTVRDI</button></div>`);
+}
+function nextSeq(){return state.events.length?Math.max(...state.events.map(e=>Number(e.seq||0)))+1:1}
+function savePending(){
+  if(pending.actorType==="official"&&!officialPenaltyAvailable(pending.team,pending.type)){alert("Ova kazna je već evidentirana za klupu.");return;}
+  if(pending.actorType==="player"&&pending.type==="additional"){
+    const at=timeToSeconds(pending.minute,pending.second);
+    const active=activeSuspensionEventsForPlayer(pending.team,pending.actor,at);
+    if(active.length){
+      openModal(`<div class="modalhead"><div class="modaltitle">#${pending.actor}</div><button class="close" onclick="closeModal()">×</button></div>
+        <div class="confirmbox"><strong>Igrač već služi 2 min.</strong><br>Ovaj slučaj evidentiraj kao RANI ULAZAK, ne kao ADDITIONAL PLAYER.</div>
+        <div class="footer"><button class="btn" onclick="closeModal()">Zatvori</button></div>`);
+      return;
+    }
+  }
+  if(pending.actorType==="player"&&pending.type==="2min"&&!pending.overlapChecked){const at=timeToSeconds(pending.minute,pending.second),active=activeSuspensionEventsForPlayer(pending.team,pending.actor,at);if(active.length){pending.overlapChecked=true;openModal(`<div class="modalhead"><div class="modaltitle">#${pending.actor} · prethodno 2 min još traje</div><button class="close" onclick="closeModal()">×</button></div><div class="earlyentry">Da li je ovo kazna zbog ranog ulaska u igru?</div><div class="eventgrid"><button class="eventbtn double" onclick="setEarlyEntry(true)">RANI ULAZAK</button><button class="eventbtn" onclick="setEarlyEntry(false)">DRUGA SITUACIJA</button></div>`);return;}}
+  finalizePendingSave();
+}
+function setEarlyEntry(v){pending.earlyEntry=Boolean(v);finalizePendingSave()}
+function finalizePendingSave(){const saved={...pending,id:Date.now()+Math.random(),seq:nextSeq()};state.events.push(saved);syncReferenceClockFromEvent(saved);pending=null;closeModal();renderAll();}
+function startTTO(t){const no=state.events.filter(e=>e.team===t&&e.type==="tto").length+1;pending={team:t,actorType:"team",actor:"TEAM",type:"tto",minute:null,second:null,result:null,ttoNo:no};chooseMinute()}
+function undoLast(){
+  if(!state.events.length)return;
+  const last=[...state.events].sort((a,b)=>(Number(b.seq||0)-Number(a.seq||0)))[0];
+  if(confirm("Obrisati poslednji unos?")){state.events=state.events.filter(e=>String(e.id)!==String(last.id));renderAll()}
+}
+function deleteEvent(id){
+  const e=state.events.find(x=>String(x.id)===String(id));
+  if(!e)return;
+  if(confirm("Obrisati ovaj događaj?")){state.events=state.events.filter(x=>String(x.id)!==String(id));renderAll()}
+}
+
+
+function openManualEditor(id=null){
+  editingEventId=id;
+  const existing=id?state.events.find(e=>String(e.id)===String(id)):null;
+  const e=existing?{...existing}:{team:0,actorType:"player",actor:(state.players[0][0]||1),type:"goal",minute:1,second:null,result:null};
+  openModal(`
+    <div class="modalhead"><div class="modaltitle">${existing?"Izmeni događaj":"Dodaj propušten događaj"}</div><button class="close" onclick="closeModal()">×</button></div>
+    <div class="manualgrid">
+      <div class="field"><label>Ekipa</label><select id="mTeam" onchange="manualRefreshActor()"><option value="0" ${Number(e.team)===0?"selected":""}>A · ${esc(state.teamNames[0])}</option><option value="1" ${Number(e.team)===1?"selected":""}>B · ${esc(state.teamNames[1])}</option></select></div>
+      <div class="field"><label>Ko</label><select id="mActorType" onchange="manualRefreshActor();manualRefreshEventOptions()"><option value="player" ${e.actorType==="player"?"selected":""}>Igrač</option><option value="official" ${e.actorType==="official"?"selected":""}>Zvaničnik</option><option value="team" ${e.actorType==="team"?"selected":""}>Ekipa / TTO</option></select></div>
+      <div class="field full"><label id="mActorLabel">Broj igrača</label><div id="mActorControl"></div></div>
+      <div class="field"><label>Događaj</label><select id="mType" onchange="manualToggleFields()"></select></div>
+      <div class="field" id="mResultWrap"><label>7 m</label><select id="mResult"><option value="goal" ${e.result==="goal"?"selected":""}>Pogodak</option><option value="miss" ${e.result==="miss"?"selected":""}>Promašaj</option></select></div>
+      <div class="field"><label>Minut</label><input id="mMinute" type="number" inputmode="numeric" min="1" max="60" value="${Number(e.minute)||1}"></div>
+      <div class="field" id="mSecondWrap"><label>Sekunde</label><input id="mSecond" type="number" inputmode="numeric" min="0" max="59" value="${e.second==null?0:Number(e.second)}"></div><div class="field" id="mAttacksWrap"><label>Napadi</label><input id="mAttacks" type="number" inputmode="numeric" min="0" max="3" value="${Number(e.attacksDone||0)}"></div>
+    </div>
+    
+    <div class="footer"><button class="btn" onclick="closeModal()">Odustani</button><button class="btn" style="background:#1f6feb;color:#fff" onclick="saveManualEvent()">SAČUVAJ</button></div>`);
+  manualRefreshActor(e.actorType==="player"?e.actor:null,e.actorType==="official"?e.actor:null);
+  manualRefreshEventOptions(e.type);
+  manualToggleFields();
+}
+function manualRefreshActor(preferredPlayer=null,preferredOfficial=null){
+  const team=Number(document.getElementById("mTeam")?.value||0);
+  const kind=document.getElementById("mActorType")?.value||"player";
+  const wrap=document.getElementById("mActorControl"),labelEl=document.getElementById("mActorLabel");
+  if(!wrap)return;
+  if(kind==="player"){
+    labelEl.textContent="Broj igrača";
+    const current=preferredPlayer??(state.players[team][0]||1), roster=[...state.players[team]].sort((a,b)=>a-b);
+    wrap.innerHTML=`<input id="mActorPlayer" type="number" inputmode="numeric" min="1" max="99" value="${current}" list="rosterListManual"><datalist id="rosterListManual">${roster.map(n=>`<option value="${n}"></option>`).join("")}</datalist>`;
+  }else if(kind==="official"){
+    labelEl.textContent="Zvaničnik";
+    const list=state.officials[team].length?state.officials[team]:OFFICIALS,current=preferredOfficial??list[0]??"A";
+    wrap.innerHTML=`<select id="mActorOfficial">${list.map(o=>`<option value="${o}" ${String(o)===String(current)?"selected":""}>${o}</option>`).join("")}</select>`;
+  }else{
+    labelEl.textContent="Ekipa";wrap.innerHTML=`<div class="display" style="font-size:18px">${esc(state.teamNames[team])}</div>`;
+  }
+}
+function manualRefreshEventOptions(preferred=null){
+  const kind=document.getElementById("mActorType")?.value||"player";
+  const sel=document.getElementById("mType");
+  if(!sel)return;
+  let opts=[];
+
+  if(kind==="player"){
+    opts=[["goal","GOL"],["7m","7 m"],["warning","ŽUTI KARTON"],["2min","2 MIN"],["2plus2","2+2 MIN"],["dq","DISKVALIFIKACIJA"],["additional","ADDITIONAL PLAYER"],["injury3","POVREDA 3N"]];
+  }else if(kind==="official"){
+    const team=Number(document.getElementById("mTeam")?.value||0);
+    if(officialPenaltyAvailable(team,"warning",editingEventId)||preferred==="warning")opts.push(["warning","ŽUTI KARTON"]);
+    if(officialPenaltyAvailable(team,"2min",editingEventId)||preferred==="2min")opts.push(["2min","2 MIN"]);
+    if(officialPenaltyAvailable(team,"dq",editingEventId)||preferred==="dq")opts.push(["dq","DISKVALIFIKACIJA"]);
+  }else{
+    opts=[["tto","TIMSKI TAJM-AUT"]];
+  }
+
+  sel.innerHTML=opts.map(([v,l])=>`<option value="${v}" ${v===preferred?"selected":""}>${l}</option>`).join("");
+  manualToggleFields();
+}
+function manualToggleFields(){const type=document.getElementById("mType")?.value,r=document.getElementById("mResultWrap"),s=document.getElementById("mSecondWrap"),a=document.getElementById("mAttacksWrap");if(r)r.style.display=type==="7m"?"block":"none";if(s)s.style.display=["2min","2plus2","additional","dq","tto"].includes(type)?"block":"none";if(a)a.style.display=type==="injury3"?"block":"none";}
+function saveManualEvent(){
+  const team=Number(document.getElementById("mTeam").value),actorType=document.getElementById("mActorType").value,type=document.getElementById("mType").value,minute=Number(document.getElementById("mMinute").value),needsSecond=["2min","2plus2","additional","dq","tto"].includes(type),second=needsSecond?Number(document.getElementById("mSecond").value):null,result=type==="7m"?document.getElementById("mResult").value:null,attacksDone=type==="injury3"?Math.max(0,Math.min(3,Number(document.getElementById("mAttacks")?.value||0))):null;
+  if(actorType==="official"&&!officialPenaltyAvailable(team,type,editingEventId)){alert("Ova kazna je već evidentirana za klupu.");return}
+  if(!Number.isInteger(minute)||minute<1||minute>60){alert("Minut mora biti od 1 do 60.");return}if(needsSecond&&(!Number.isInteger(second)||second<0||second>59)){alert("Sekunde moraju biti od 00 do 59.");return}
+  let actor="TEAM";
+  if(actorType==="player"){actor=Number(document.getElementById("mActorPlayer").value);if(!Number.isInteger(actor)||actor<1||actor>99){alert("Broj igrača mora biti od 1 do 99.");return}if(!state.players[team].includes(actor)){if(state.players[team].length>=16){alert("Ekipa već ima 16 igrača.");return}state.players[team].push(actor)}}
+  else if(actorType==="official"){actor=document.getElementById("mActorOfficial").value;if(!state.officials[team].includes(actor)){if(state.officials[team].length>=5){alert("Ekipa već ima 5 zvaničnika.");return}state.officials[team].push(actor);state.officials[team].sort()}}
+  let savedEvent=null;
+  if(editingEventId){const idx=state.events.findIndex(e=>String(e.id)===String(editingEventId));if(idx<0)return;const old=state.events[idx];savedEvent={...old,team,actorType,actor,type,minute,second,result,attacksDone:type==="injury3"?attacksDone:old.attacksDone,injuryClosed:type==="injury3"?false:old.injuryClosed};state.events[idx]=savedEvent}
+  else{savedEvent={id:Date.now()+Math.random(),seq:nextSeq(),team,actorType,actor,type,minute,second,result,attacksDone:type==="injury3"?attacksDone:null,injuryClosed:false};state.events.push(savedEvent)}
+  syncReferenceClockFromEvent(savedEvent);
+  editingEventId=null;closeModal();renderAll();
+}
+
+function renderSetup(t){
+  const el=document.getElementById(t===0?"setupA":"setupB");
+  const options=[...new Set([...DEFAULT_TEAMS,...state.teamNames])].map(n=>`<option ${n===state.teamNames[t]?"selected":""}>${esc(n)}</option>`).join("");
+  const pc=state.players[t].length, oc=state.officials[t].length;
+  el.innerHTML=`<div class="teamhead"><div class="teamtitle">Ekipa ${t===0?"A":"B"}</div><div class="teammetrics"><span class="metric">IGRAČI ${pc}/16</span><span class="metric">ZVANIČNICI ${oc}/5</span></div></div>
+  <div class="sectiontitle">Ime ekipe</div>
+  <select onchange="state.teamNames[${t}]=this.value;renderAll()" style="width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:0 10px">${options}</select>
+  <div class="sectiontitle">Broj igrača · ${pc}/16</div>
+  <div class="display">${buf[t]||"—"}</div>
+  <div class="keypad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="key" onclick="kp(${t},'${n}')">${n}</button>`).join("")}<button class="key" onclick="kc(${t})">C</button><button class="key" onclick="kp(${t},'0')">0</button><button class="key" onclick="addP(${t})">＋</button></div>
+  <div class="tags">${[...state.players[t]].sort((a,b)=>a-b).map(n=>`<span class="tag">#${n} <button onclick="delP(${t},${n})">×</button></span>`).join("")}</div>
+  <div class="sectiontitle">Zvaničnici · ${oc}/5</div>
+  <div class="offpick">${OFFICIALS.map(o=>`<button class="${state.officials[t].includes(o)?"on":""}" onclick="toggleO(${t},'${o}')">${o}</button>`).join("")}</div>`;
+}
+function kp(t,d){if(buf[t].length<2){buf[t]=(buf[t]+d).replace(/^0+/,"");renderSetup(t)}}
+function kc(t){buf[t]="";renderSetup(t)}
+function addP(t){const n=parseInt(buf[t],10);if(!n||n<1||n>99)return alert("Broj mora biti 1–99.");if(!state.players[t].includes(n)){if(state.players[t].length>=16)return alert("Maksimalno 16 igrača.");state.players[t].push(n)}buf[t]="";renderAll()}
+function delP(t,n){state.players[t]=state.players[t].filter(x=>x!==n);renderAll()}
+function toggleO(t,o){let a=state.officials[t];if(a.includes(o))state.officials[t]=a.filter(x=>x!==o);else{if(a.length>=5)return alert("Najviše 5 zvaničnika.");state.officials[t]=[...a,o].sort()}renderAll()}
+
+renderAll();
+</script>
+</body>
+</html>
