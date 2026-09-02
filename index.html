@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Rukomet – evidencija utakmice V117 DIREKTNA DQ VS 3x2</title>
+<title>Rukomet – evidencija utakmice V119 POVREDA 3 NAPADA iPAD</title>
 <style>
 :root{--bg:#eef2f5;--card:#fff;--ink:#17212b;--muted:#66717d;--line:#d8dee5;--soft:#f4f6f8;--yellow:#fff3b0;--red:#fde2df;--green:#e3f6e9;--orange:#ffead1;--orangeLine:#e79520}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -2441,6 +2441,163 @@ button,select,input{font:inherit} button{cursor:pointer}
   font-weight:950!important;
 }
 
+
+/* V118 - ADD mora uvek da bude vidljiv i na iPad-u */
+.playerCardHead.noReturn{
+  grid-template-columns:minmax(36px,1fr) 34px 34px!important;
+}
+.playerCardHead.hasReturn{
+  grid-template-columns:minmax(34px,1fr) 48px 31px 31px!important;
+}
+.playerCardHead .headActionBtn{
+  min-width:0!important;
+  width:100%!important;
+  padding-left:1px!important;
+  padding-right:1px!important;
+}
+.playerCardHead.hasReturn .playerReturnTime{
+  width:48px!important;
+  min-width:48px!important;
+  font-size:8.7px!important;
+}
+.playerCardHead.noReturn .playerNumberBtn{
+  min-width:0!important;
+}
+
+/* iPad 13 landscape: gornji red je posebno sabijen, ali ništa ne nestaje */
+@media (min-width:1180px) and (max-width:1420px) and (min-height:800px) and (max-height:1100px){
+  .playerCardHead{
+    gap:2px!important;
+  }
+  .playerCardHead.noReturn{
+    grid-template-columns:minmax(34px,1fr) 30px 30px!important;
+  }
+  .playerCardHead.hasReturn{
+    grid-template-columns:minmax(32px,1fr) 44px 29px 29px!important;
+  }
+  .playerCardHead .headActionBtn{
+    height:19px!important;
+    min-height:19px!important;
+    font-size:6.4px!important;
+  }
+  .playerCardHead.hasReturn .playerReturnTime{
+    width:44px!important;
+    min-width:44px!important;
+    font-size:8.1px!important;
+  }
+  .playerNumberBtn{
+    font-size:23px!important;
+  }
+}
+
+
+/* V119 - kompaktno POVREDA · 3 NAPADA, da se sve vidi i na iPad-u */
+.summaryGrid .summaryBox:nth-child(3){
+  overflow:hidden!important;
+}
+.injuryRows{
+  width:100%!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:3px!important;
+}
+.compactInjuryLine{
+  display:grid!important;
+  grid-template-columns:34px minmax(0,1fr) 28px!important;
+  gap:4px!important;
+  align-items:center!important;
+  width:100%!important;
+  min-width:0!important;
+}
+.compactInjuryLine .injuryplayer{
+  font-size:12px!important;
+  line-height:1!important;
+  font-weight:950!important;
+  white-space:nowrap!important;
+}
+.compactInjuryLine .attackdots{
+  display:grid!important;
+  grid-template-columns:repeat(3,18px)!important;
+  justify-content:center!important;
+  gap:4px!important;
+  min-width:0!important;
+}
+.compactInjuryLine .attackdot{
+  width:18px!important;
+  height:18px!important;
+  min-width:18px!important;
+  min-height:18px!important;
+  border-width:1.5px!important;
+}
+.compactAttackBtn{
+  width:28px!important;
+  min-width:28px!important;
+  max-width:28px!important;
+  height:52px!important;
+  min-height:52px!important;
+  padding:2px 0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:1px!important;
+  overflow:hidden!important;
+}
+.compactAttackBtn .attackPlus{
+  display:block!important;
+  font-size:15px!important;
+  line-height:1!important;
+  font-weight:950!important;
+}
+.compactAttackBtn .attackVertical{
+  display:block!important;
+  font-size:6px!important;
+  line-height:.95!important;
+  font-weight:950!important;
+  writing-mode:vertical-rl!important;
+  transform:rotate(180deg)!important;
+  letter-spacing:.02em!important;
+}
+.injuryDoneBtn{
+  width:36px!important;
+  min-width:36px!important;
+  height:28px!important;
+  padding:0 2px!important;
+  font-size:7px!important;
+  font-weight:950!important;
+}
+
+/* iPad 13 landscape: isto ponašanje, samo još kompaktnije dimenzije */
+@media (min-width:1180px) and (max-width:1420px) and (min-height:800px) and (max-height:1100px){
+  .compactInjuryLine{
+    grid-template-columns:31px minmax(0,1fr) 26px!important;
+    gap:3px!important;
+  }
+  .compactInjuryLine .injuryplayer{
+    font-size:11px!important;
+  }
+  .compactInjuryLine .attackdots{
+    grid-template-columns:repeat(3,16px)!important;
+    gap:3px!important;
+  }
+  .compactInjuryLine .attackdot{
+    width:16px!important;
+    height:16px!important;
+    min-width:16px!important;
+    min-height:16px!important;
+  }
+  .compactAttackBtn{
+    width:26px!important;
+    min-width:26px!important;
+    max-width:26px!important;
+    height:48px!important;
+    min-height:48px!important;
+  }
+  .compactAttackBtn .attackVertical{
+    font-size:5.5px!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3854,10 +4011,25 @@ function renderPlayerHalf(t,list){
 function teamInjuryCompact(t){
   const rows=activeInjuryEvents(t).slice(0,2);
   if(!rows.length)return '<div class="noActive">—</div>';
+
   return `<div class="injuryRows">${rows.map(e=>{
     const n=Math.max(0,Math.min(3,Number(e.attacksDone||0)));
-    const dots=[1,2,3].map(i=>`<span class="attackdot ${i<=n?"done":""}"></span>`).join("");
-    return `<div class="injuryline"><span class="injuryplayer">#${e.actor}</span><span class="attackdots">${dots}</span>${n<3?`<button class="attackbtn injuryadd" onclick="incrementAttack(${t})">+ NAPAD</button>`:`<button class="attackbtn" onclick="dismissInjury('${e.id}')">MOŽE</button>`}</div>`;
+    const dots=[1,2,3]
+      .map(i=>`<span class="attackdot ${i<=n?"done":""}"></span>`)
+      .join("");
+
+    const action=n<3
+      ? `<button class="attackbtn injuryadd compactAttackBtn" onclick="incrementAttack(${t})" aria-label="Dodaj napad">
+           <span class="attackPlus">+</span>
+           <span class="attackVertical">NAPAD</span>
+         </button>`
+      : `<button class="attackbtn injuryDoneBtn" onclick="dismissInjury('${e.id}')">MOŽE</button>`;
+
+    return `<div class="injuryline compactInjuryLine">
+      <span class="injuryplayer">#${e.actor}</span>
+      <span class="attackdots">${dots}</span>
+      ${action}
+    </div>`;
   }).join("")}</div>`;
 }
 function activeReturnRows(t){
@@ -3934,14 +4106,14 @@ function renderPlayerCards(t,players){
 
     return `<div class="playerCard ${active?"activeSusp ":""}${returnBlink?"returnSoon ":""}${s.dq?"dqCard ":""}${s.directDQ?"directDQCard ":""}${s.thirdExclusionDQ&&!s.directDQ?"thirdDQCard":""}">
 
-      <div class="playerCardHead">
+      <div class="playerCardHead ${returnText?"hasReturn":"noReturn"}">
         <button class="playerNumberBtn" onclick="openPlayerDetails(${t},${n})" title="Statistika igrača #${n}">
           ${n}
         </button>
 
         ${returnText
           ? `<div class="playerReturnTime ${returnBlink?"blinkReturn":""}">${returnText}</div>`
-          : `<div class="playerReturnTime emptyReturn">&nbsp;</div>`
+          : ""
         }
 
         <button class="headActionBtn twoPlusTwo ${!twoPlusTwoAvailable?"disabled":""}" ${!twoPlusTwoAvailable?"disabled":""}
