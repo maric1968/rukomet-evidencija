@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Rukomet – evidencija utakmice V148 iPAD 13</title>
+<title>Rukomet – evidencija utakmice V149 iPAD TOK 1-2 REDA</title>
 <style>
 :root{--bg:#eef2f5;--card:#fff;--ink:#17212b;--muted:#66717d;--line:#d8dee5;--soft:#f4f6f8;--yellow:#fff3b0;--red:#fde2df;--green:#e3f6e9;--orange:#ffead1;--orangeLine:#e79520}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -5330,6 +5330,117 @@ button,select,input{font:inherit} button{cursor:pointer}
 
   button{
     touch-action:manipulation!important;
+  }
+}
+
+
+/* V149 - iPad: bez prazne zone + TOK UTAKMICE 1 ili 2 reda automatski */
+.scoreTrackBox{
+  height:auto!important;
+  min-height:78px!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+#progressGoalRows{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+.progressStrip{
+  height:auto!important;
+  min-height:75px!important;
+  max-height:none!important;
+  overflow:visible!important;
+  margin:0 0 4px 0!important;
+}
+.progressStrip:last-child{
+  margin-bottom:0!important;
+}
+.progressCols{
+  padding-top:0!important;
+  margin-top:0!important;
+}
+.progressLabels{
+  padding-top:0!important;
+  margin-top:0!important;
+}
+
+/* Na iPad-u glavni deo prati stvarnu visinu sadržaja.
+   Ne rasteže ekipe do dna i ne pravi praznu "pustinju". */
+@media (orientation:landscape) and (min-width:1280px) and (max-width:1420px) and (min-height:820px) and (max-height:1100px){
+  .matchWrap{
+    height:auto!important;
+    min-height:0!important;
+    grid-template-rows:auto auto!important;
+    align-content:start!important;
+    gap:3px!important;
+  }
+
+  .mainThree{
+    height:auto!important;
+    min-height:0!important;
+    align-items:start!important;
+  }
+
+  .mainThree > .teamPane,
+  .mainThree > .middlePane{
+    align-self:start!important;
+    height:auto!important;
+  }
+
+  .teamPane{
+    height:auto!important;
+    min-height:0!important;
+  }
+
+  .playerTableWrap{
+    height:auto!important;
+    min-height:0!important;
+  }
+
+  .playerCards{
+    height:auto!important;
+    align-content:start!important;
+  }
+
+  .scoreTrackBox{
+    height:auto!important;
+    min-height:78px!important;
+    max-height:none!important;
+    padding:3px 4px!important;
+    overflow:visible!important;
+  }
+
+  #progressGoalRows{
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+
+  .progressStrip{
+    height:auto!important;
+    min-height:75px!important;
+    max-height:none!important;
+    margin:0 0 4px 0!important;
+    overflow:visible!important;
+  }
+
+  .progressStrip:last-child{
+    margin-bottom:0!important;
+  }
+
+  .progressLabels,
+  .goalCol{
+    grid-template-rows:18px 18px 18px 18px!important;
+  }
+
+  .progressLabels > div,
+  .goalCell{
+    height:18px!important;
+    min-height:18px!important;
+    line-height:18px!important;
   }
 }
 
