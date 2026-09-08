@@ -9134,6 +9134,96 @@ button.breakLocked:disabled{
   }
 }
 
+
+/* ============================================================
+   V177 - POVREDA / 3 NAPADA
+   Cilj: + je dovoljno velik za dodir, ali više ne dominira karticom.
+   Krugovi i broj igrača ostaju primarni vizuelni signal.
+   ============================================================ */
+
+.compactInjuryLine{
+  grid-template-columns:30px minmax(0,1fr) 34px!important;
+  gap:6px!important;
+}
+
+.compactInjuryLine .injuryplayer{
+  font-size:14px!important;
+}
+
+.compactInjuryLine .attackdots{
+  grid-template-columns:repeat(3,18px)!important;
+  justify-content:center!important;
+  gap:5px!important;
+  padding:0!important;
+}
+
+.compactInjuryLine .attackdot{
+  width:18px!important;
+  height:18px!important;
+  min-width:18px!important;
+  min-height:18px!important;
+}
+
+.compactAttackBtn,
+.injuryDoneIconBtn{
+  width:34px!important;
+  min-width:34px!important;
+  max-width:34px!important;
+  height:34px!important;
+  min-height:34px!important;
+  border-radius:8px!important;
+  justify-self:end!important;
+}
+
+.compactAttackBtn .attackPlus{
+  font-size:22px!important;
+  line-height:1!important;
+}
+
+.attackDoneMark{
+  font-size:19px!important;
+}
+
+@media (orientation:landscape) and (min-width:1280px) and (max-width:1420px) and (min-height:820px) and (max-height:1100px){
+  .compactInjuryLine{
+    grid-template-columns:29px minmax(0,1fr) 32px!important;
+    gap:5px!important;
+  }
+
+  .compactInjuryLine .injuryplayer{
+    font-size:13px!important;
+  }
+
+  .compactInjuryLine .attackdots{
+    grid-template-columns:repeat(3,17px)!important;
+    gap:4px!important;
+  }
+
+  .compactInjuryLine .attackdot{
+    width:17px!important;
+    height:17px!important;
+    min-width:17px!important;
+    min-height:17px!important;
+  }
+
+  .compactAttackBtn,
+  .injuryDoneIconBtn{
+    width:32px!important;
+    min-width:32px!important;
+    max-width:32px!important;
+    height:32px!important;
+    min-height:32px!important;
+  }
+
+  .compactAttackBtn .attackPlus{
+    font-size:20px!important;
+  }
+
+  .attackDoneMark{
+    font-size:18px!important;
+  }
+}
+
 </style>
 </head>
 <body>
